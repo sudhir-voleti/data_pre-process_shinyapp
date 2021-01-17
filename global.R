@@ -1,41 +1,14 @@
-# basic code for a one-hot encoding and descrtiptive stats wala app 
-df <- read.csv("D://churn_data.csv")
-if (!require("purrr")){install.packages("purrr"); library("purrr")}
-if (!require("fastDummies")){install.packages("fastDummies"); library("fastDummies")}
 
-#Function 1: Upload data function------
-upload_data <- function(file){
-  df <- read.csv(file)
-  return(df)
+data_frame_str <- function(data){
+  df_str <- data.frame(variable = names(data),
+             class = sapply(data, class),
+             first_values = sapply(data, function(x) paste0(head(x),  collapse = ", ")),
+             unique_value_count = sapply(data,function(x) length(unique(x))),
+             row.names = NULL) 
+  return(df_str)
 }
 
-
-dataf <- upload_data('https://vincentarelbundock.github.io/Rdatasets/csv/carData/Salaries.csv')
-
-
-#Function 2: select numeric cols-----
-select_numeric_cols <- function(df){
-  num_df <- df %>% select_if(is.numeric)
-  return(num_df)
-}
-
-data_n <- select_numeric_cols(dataf)
-
-#Function 3: select cat cols-----
-select_cat_cols <- function(df){
-  cat_df <- df %>% select_if(is.character)
-  return(cat_df)
-}
-
-data_c <- select_cat_cols(dataf)
-
-
-
-convert_cat_to_num <- function(df){
-  
-}
-#Function 4 : plot missing vallues----
- display_missing_percentage <- function(data){
+display_missing_percentage <- function(data){
   # count total, missing value & its percentage 
   missing.values <- data %>%
     gather(key = "key", value = "val") %>%
@@ -62,6 +35,9 @@ convert_cat_to_num <- function(df){
     return(percentage.plot)
     
   }else{
+    
+    levels <- (missing.values  %>% filter(isna == T) %>% arrange(desc(pct)))$key
+    
     percentage.plot <- missing.values %>%
       ggplot() +
       geom_bar(aes(x = reorder(key, desc(pct)), 
@@ -72,7 +48,8 @@ convert_cat_to_num <- function(df){
                         values = c('steelblue', 'tomato3'), labels = c("Present", "Missing")) +
       coord_flip() +
       labs(title = "Percentage of missing values", x =
-             'Variable', y = "% of missing values")
+             'Variable', y = "% of missing values") 
+     
     return(percentage.plot)
   }
   

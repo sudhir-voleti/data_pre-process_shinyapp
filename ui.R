@@ -8,11 +8,26 @@ library(fastDummies)
 ui <- fluidPage(theme = shinytheme("cerulean"),
                 tagList(
                   tags$head(tags$script(type="text/javascript", src = "code.js")),
-                  navbarPage(title="Dummy Encoder",
+                  navbarPage(title="Basic Data Analysis",
                              tabPanel(title = "Upload Data",
                                       #titlePanel("Upload data for imputation"),
+                                      
+                                      
+                                      #---code for example datasets will come
+                                      
+                                      # fluidRow(
+                                      #   hr(),
+                                      #   h3("Upload Example Datasets"),
+                                      #   
+                                      #   
+                                      #   
+                                      # ),
+                                      
+                                      
+                                      
                                       fluidRow
                                       (
+                                        
                                         hr(),
                                         h3("Upload Data"),
                                         column(5,
@@ -30,7 +45,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         #                       choices = list("None" = 1, "Double Quote" = 2, "Single Quote" = 3), 
                                         #                       selected = 1)
                                         #        ),
-                                        column(3,radioButtons("na_str", label = "NA Strings",
+                                        column(3,radioButtons("na_str", label = "Select NA Values in Dataset",
                                                               choices = list("." = ".", "NA" = "NA","Other"="other"),
                                                               selected = "NA"),
                                                uiOutput("text")
@@ -48,10 +63,48 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       )
                                       
                              ),# end of tabpanel-1
-                             tabPanel(title = "Create Dummy Variables",
+                             
+                             
+                             tabPanel(title="Non-Metric Detection & Conversion",
                                       sidebarLayout(
                                         sidebarPanel(
-                                            h4("Select columns and options for dummy encoding"),
+                                          h4("Select columns to convert"),
+                                          uiOutput('vars2conv_fact'),
+                                          hr(),
+                                          actionButton("conv", "Convert"),
+                                        ),
+                                        mainPanel(
+                                          h4("Uploaded Data Structure"),
+                                          dataTableOutput('df_str'),
+                                          h4("Data structure after conversion"),
+                                          dataTableOutput("df_conv_str")
+                                        )
+                                          
+                                        )
+                                      ),
+                             
+                             
+                             tabPanel(title = "Missing Value",
+                                      sidebarLayout(
+                                        sidebarPanel(
+                                          sidebarMenu("ih")
+                                      
+                                        
+                                      ),
+                                      mainPanel(
+                                        h4("Missing Value Distribution"),
+                                        plotOutput("missing_plot")
+                                        
+                                        
+                                      )
+                                      
+                                      )
+                             ),
+                             
+                             tabPanel(title = "Dummy Variables",
+                                      sidebarLayout(
+                                        sidebarPanel(
+                                            h4("Select columns to encode"),
                                             uiOutput('vars2conv'),
                                           hr(),
                                           checkboxInput("rem_org",
@@ -67,12 +120,13 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                           checkboxInput("ign_NA","Ignore NA",
                                                         value = TRUE),
                                           hr(),
+                                          actionButton("conv2", "Convert",icon = ),
                                           downloadButton("dummy_download")
                                         ),
                                         
                                         mainPanel(
                                           h3("Uploaded Data Structure"),
-                                          verbatimTextOutput('org_text'),
+                                          
                                           hr(),
                                           h3("Review converted dummy data"),
                                           
