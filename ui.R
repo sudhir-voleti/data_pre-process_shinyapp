@@ -4,6 +4,7 @@ library(shiny)
 library(shinythemes)
 library(dplyr)
 library(fastDummies)
+library(Hmisc)
 
 ui <- fluidPage(theme = shinytheme("cerulean"),
                 tagList(
@@ -74,7 +75,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                           actionButton("conv", "Convert"),
                                         ),
                                         mainPanel(
-                                          h4("Uploaded Data Structure"),
+                                          h4("Uploaded data structure"),
                                           dataTableOutput('df_str'),
                                           h4("Data structure after conversion"),
                                           dataTableOutput("df_conv_str")
@@ -85,20 +86,64 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                              
                              
                              tabPanel(title = "Missing Value",
-                                      sidebarLayout(
+                                      #sidebarLayout(
                                         sidebarPanel(
-                                          sidebarMenu("ih")
+                                          conditionalPanel(condition="input.tabselected==1",
+                                                          # actionButton('bt','button Tab 1')
+                                          ),
+                                          
+                                          conditionalPanel(condition="input.tabselected==2",
+                                                           h4("Continuous Variable"),
+                                                           uiOutput('intvars2imp'),
+                                                           selectInput("selIntImpMethod",
+                                                                       label = "Imputation Method",
+                                                                       choices=c(mean="mean",
+                                                                                 complete_case = "complete_case",
+                                                                                 median = "median"),
+                                                                       multiple = FALSE,
+                                                                       selectize = TRUE,
+                                                                       selected=cols),
+                                                           hr(),
+                                                           h4("Categorical Variable"),
+                                                           uiOutput('catvars2imp'),
+                                                           selectInput("selCatImpMethod",
+                                                                       label = "Imputation Method",
+                                                                       choices=c(mode="mode"),
+                                                                       multiple = FALSE,
+                                                                       selectize = TRUE,
+                                                                       selected=cols),
+                                                           checkboxInput("orig_col","Keep Original Columns",value = TRUE),
+                                                           actionButton("imp", "Impute"),
+                                                           downloadButton("imp_download")
+                                                           
+                                          )
+                                          
                                       
                                         
                                       ),
                                       mainPanel(
-                                        h4("Missing Value Distribution"),
-                                        plotOutput("missing_plot")
+                                        tabsetPanel(type = "tabs",
+                                                    tabPanel("Missing Value Stats",value = 1,
+                                                      h4("Missing Value Distribution"),
+                                                      plotOutput("missing_plot")
+                                                    ),
+                                                    tabPanel("Imputation",value = 2,
+                                                      h4("Stats after imputation"),
+                                                      dataTableOutput("int_replacement"),
+                                                      hr(),
+                                                      h4("sample dataset after imputation"),
+                                                      dataTableOutput("int_imp"),
+                                                      #h4("Missing Values Imputed for categorical variables"),
+                                                      #dataTableOutput("cat_imp")
+                                                    ),id = "tabselected"
+                                                    
+                                        )
+                                        
                                         
                                         
                                       )
                                       
-                                      )
+                                     # )
                              ),
                              
                              tabPanel(title = "Dummy Variables",
@@ -125,7 +170,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         ),
                                         
                                         mainPanel(
-                                          h3("Uploaded Data Structure"),
+                                          #h3("Uploaded Data Structure"),
                                           
                                           hr(),
                                           h3("Review converted dummy data"),

@@ -8,7 +8,7 @@ server <- function(input, output,session) {
                     textInput("na_text", "Input", "please enter NA string")
                     }
                         })
-  
+  # Tab-1----
   
   data <- reactive({
             if (is.null(input$file)) { return(NULL) }
@@ -25,7 +25,7 @@ server <- function(input, output,session) {
   
   output$head <- renderDataTable({head(data(),n = 10)})
   
-  # tab-2 Non-Metric Detection & Conversion
+  # tab-2 Non-Metric Detection & Conversion ------
   data_fr_str <- reactive({data_frame_str(data())})
   
   
@@ -67,16 +67,96 @@ server <- function(input, output,session) {
   
   data_fac <- reactive({values$df_data}) # convereted factorial dataset
   
-  output$df_conv_str <- renderDataTable({data_frame_str(data_fac())})
+  output$df_conv_str <- renderDataTable({head(data_frame_str(data_fac()),n=10)})
 
-  # tab-3 Missing Value
+ 
   
+  # tab-3 Missing Value----
   
+  # sub-tab-1
   output$missing_plot <- renderPlot({
     display_missing_percentage(data_fac())
   })
   
   
+  # sub-tab-2
+  miss_cols_list <- reactive({miss_cols(data_fac())})
+  
+  
+  # list of integer column for imputation
+  output$intvars2imp <- renderUI({
+    if (is.null(input$file)) { return(NULL) }
+    else{
+      int_cols <- miss_cols_list()
+      cols <- int_cols[[1]]
+      selectInput("IntVar2Imp",
+                  label = "Select numerical columns for imputation ",
+                  choices=names(data_fac()),
+                  multiple = TRUE,
+                  selectize = TRUE,
+                  selected=cols)
+    }
+  })
+
+  # list of categorical columns for imputation  
+  output$catvars2imp <- renderUI({
+    if (is.null(input$file)) { return(NULL) }
+    else{
+      cat_cols <- miss_cols_list()
+      cols <- cat_cols[[2]]
+      selectInput("CatVar2Imp",
+                  label = "Select categorical columns for imputation",
+                  choices=names(data_fac()),
+                  multiple = TRUE,
+                  selectize = TRUE,
+                  selected=cols)
+    }
+  })
+  
+  
+  # imputed_df <- reactive({
+  #   imputer(df = data_fac(),
+  #           num_method = input$selIntImpMethod,
+  #           cat_method = input$selCatImpMethod,
+  #           int_cols = input$IntVar2Imp,
+  #           cat_cols = input$CatVar2Imp,
+  #           original_flag = TRUE
+  #           )
+  # })
+  
+  values1 <- reactiveValues(df_imputed = NULL) 
+  values2 <- reactiveValues(replaced_by = NULL) 
+  
+  observeEvent(input$imp, {
+    
+    df <- data_fac()
+   imputed_df <-  imputer(df = df,
+            num_method = input$selIntImpMethod,
+            cat_method = input$selCatImpMethod,
+            int_cols = input$IntVar2Imp,
+            cat_cols = input$CatVar2Imp,
+            original_flag = input$orig_col
+            )
+   values1$df_imputed <- imputed_df[[1]]
+   values2$replaced_by <- imputed_df[[2]]
+    
+  })
+  
+  
+  
+  output$int_imp <- renderDataTable({head(values1$df_imputed,10)})
+  
+  output$int_replacement <- renderDataTable({values2$replaced_by})
+  
+  
+  output$imp_download <- downloadHandler(
+    filename = function() {
+      paste("imputed", ".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(values1$df_imputed, file, row.names = FALSE)
+    }
+  )
   
   
   
@@ -84,7 +164,10 @@ server <- function(input, output,session) {
   
   
   
-  # tab-4 Dummy Variables
+  
+  
+  
+  # tab-4 Dummy Variables------
   
   output$vars2conv <- renderUI({
                       if (is.null(input$file)) { return(NULL) }

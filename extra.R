@@ -77,3 +77,64 @@ convert_cat_to_num <- function(df){
   }
   
 }
+
+#Function 5: return colnames with missing values--------
+df<- data
+miss_cols <- function(df){
+  list_vars = list()
+  miss_cols <- sapply(df,function(x) sum(is.na(x)))
+  miss_cols <- names(miss_cols[miss_cols!=0])
+  miss_cols_class <- sapply(data[miss_cols], function(x) class(x))
+  miss_cols_int <- names(miss_cols_class[miss_cols_class=="integer"])
+  miss_cols_cat <- names(miss_cols_class[miss_cols_class=="character"|miss_cols_class=="factor"])
+  
+  list_vars[[1]] <- miss_cols_int
+  list_vars[[2]] <- miss_cols_cat
+  
+  return(list_vars)
+}
+
+
+
+
+miss_cols_list <- miss_cols(data)
+int_cols <- miss_cols_list[[1]]
+miss_cols_char <- miss_cols_list[[2]]
+intcol
+
+
+imputer <- function(df,num_method,cat_method=NULL,int_cols,cat_cols,original_flag){
+  df_copy <- df
+  replaced_by  <- sapply(data[int_cols],function(x) mean(x,na.rm = TRUE))
+  imputed_df <- sapply(df_copy[int_cols], function(x) impute(x, mean))
+  colnames(imputed_df) <- paste0("imputed_",int_cols)
+  imputed_df_final <- cbind(df_copy,imputed_df)
+  
+  if(original_flag==TRUE){
+    return(imputed_df_final)
+  }else{
+    imputed_df_final[,int_cols] <- NULL
+    return(imputed_df_final)
+  }
+  
+}
+
+
+
+sapply(data,function(x) sum(is.na(x)))
+sapply(data[miss_cols_int],function(x) mean(x,na.rm = TRUE))
+
+p <- sapply(data[miss_cols_int], function(x) impute(x, mean))
+
+colnames(p) <- paste0("imputed_",miss_cols_int)
+colnames(p)
+q <- cbind(df,p)
+
+
+
+# VIM Exploration
+a <- aggr(data, plot = FALSE)
+plot(a, numbers = TRUE, prop = FALSE)
+
+
+x_imputed <- kNN(data)
