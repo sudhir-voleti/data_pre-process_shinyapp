@@ -11,7 +11,7 @@ data_frame_str <- function(data){
 display_missing_percentage <- function(data){
   # count total, missing value & its percentage 
   missing.values <- data %>%
-    gather(key = "key", value = "val") %>%
+    dplyr::gather(key = "key", value = "val") %>%
     mutate(isna = is.na(val)) %>%
     group_by(key) %>%
     mutate(total = n()) %>%
