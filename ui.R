@@ -5,6 +5,9 @@ library(shinythemes)
 library(dplyr)
 library(fastDummies)
 library(Hmisc)
+library(shinyWidgets)
+
+useSweetAlert()
 
 ui <- fluidPage(theme = shinytheme("cerulean"),
                 tagList(
@@ -16,13 +19,18 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       
                                       #---code for example datasets will come
                                       
-                                      # fluidRow(
-                                      #   hr(),
-                                      #   h3("Upload Example Datasets"),
-                                      #   
-                                      #   
-                                      #   
-                                      # ),
+                                      fluidRow(
+                                        hr(),
+                                        h3("Load Example Datasets"),
+                                            selectInput("ex_data",
+                                                        label = "",
+                                                        choices=c(sleep="sleep"),#,titanic = "titanic"),
+                                                        multiple = FALSE,
+                                                        selectize = TRUE,
+                                                        selected=sleep),
+                                        #actionButton("load_dataset", "Load",icon = )
+
+                                      ),
                                       
                                       
                                       
@@ -153,7 +161,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                             uiOutput('vars2conv'),
                                           hr(),
                                           checkboxInput("rem_org",
-                                                        label = "Keep original columns",
+                                                        label = "Remove original columns",
                                                         value = TRUE
                                           ),
                                           hr(),

@@ -11,7 +11,12 @@ server <- function(input, output,session) {
   # Tab-1----
   
   data <- reactive({
-            if (is.null(input$file)) { return(NULL) }
+            if (is.null(input$file)) { 
+              return(VIM::sleep)
+              
+              
+              
+              }
             else{
               df <- read.csv(input$file$datapath,
                              sep = input$sep,
@@ -36,8 +41,8 @@ server <- function(input, output,session) {
   
   #if unique value of any column is less than 10 and it is numeric then select it automatically for conversion
   output$vars2conv_fact <- renderUI({
-    if (is.null(input$file)) { return(NULL) }
-    else{
+    #if (is.null(input$file)) { return(NULL) }
+    #else{
       cond_df <- data_fr_str() %>% filter((class=="numeric"| class=="integer") & unique_value_count<7)
       cols <- cond_df$variable
       selectInput("selVar2conv",
@@ -46,7 +51,7 @@ server <- function(input, output,session) {
                   multiple = TRUE,
                   selectize = TRUE,
                   selected=cols)
-    }
+   # }
   })
   
   
@@ -85,8 +90,8 @@ server <- function(input, output,session) {
   
   # list of integer column for imputation
   output$intvars2imp <- renderUI({
-    if (is.null(input$file)) { return(NULL) }
-    else{
+   # if (is.null(input$file)) { return(NULL) }
+   # else{
       int_cols <- miss_cols_list()
       cols <- int_cols[[1]]
       selectInput("IntVar2Imp",
@@ -95,13 +100,13 @@ server <- function(input, output,session) {
                   multiple = TRUE,
                   selectize = TRUE,
                   selected=cols)
-    }
+   # }
   })
 
   # list of categorical columns for imputation  
   output$catvars2imp <- renderUI({
-    if (is.null(input$file)) { return(NULL) }
-    else{
+    #if (is.null(input$file)) { return(NULL) }
+   # else{
       cat_cols <- miss_cols_list()
       cols <- cat_cols[[2]]
       selectInput("CatVar2Imp",
@@ -110,7 +115,7 @@ server <- function(input, output,session) {
                   multiple = TRUE,
                   selectize = TRUE,
                   selected=cols)
-    }
+   # }
   })
   
   
@@ -129,16 +134,35 @@ server <- function(input, output,session) {
   
   observeEvent(input$imp, {
     
-    df <- data_fac()
-   imputed_df <-  imputer(df = df,
-            num_method = input$selIntImpMethod,
-            cat_method = input$selCatImpMethod,
-            int_cols = input$IntVar2Imp,
-            cat_cols = input$CatVar2Imp,
-            original_flag = input$orig_col
-            )
-   values1$df_imputed <- imputed_df[[1]]
-   values2$replaced_by <- imputed_df[[2]]
+    if(is.null(input$IntVar2Imp)){
+      values1$df_imputed <- data_fac()
+      sendSweetAlert(
+        session = session,
+        title = "Warning !!! Select Variable",
+        text = NULL,
+        type = "warning"
+      )
+      
+    }else{
+      df <- data_fac()
+      imputed_df <-  imputer(df = df,
+                             num_method = input$selIntImpMethod,
+                             cat_method = input$selCatImpMethod,
+                             int_cols = input$IntVar2Imp,
+                             cat_cols = input$CatVar2Imp,
+                             original_flag = input$orig_col
+      )
+      values1$df_imputed <- imputed_df[[1]]
+      values2$replaced_by <- imputed_df[[2]]
+      sendSweetAlert(
+        session = session,
+        title = "Imputed Successfully !!",
+        text = "All in order",
+        type = "success"
+      )
+    }
+    
+  
     
   })
   
@@ -160,26 +184,20 @@ server <- function(input, output,session) {
   
   
   
-  
-  
-  
-  
-  
-  
-  
   # tab-4 Dummy Variables------
   
   output$vars2conv <- renderUI({
-                      if (is.null(input$file)) { return(NULL) }
-                      else{
-                         cols <- names(data_fac()%>%select_if(is.factor))
+                      #if (is.null(input$file)) { return(NULL) }
+                     # else{
+                         df <- values1$df_imputed
+                         cols <- names(df%>%select_if(is.factor))
                          selectInput("selVar",
                          label = "Select columns for conversion ",
-                         choices=names(data()),
+                         choices=names(df),
                          multiple = TRUE,
                          selectize = TRUE,
                          selected=cols)
-                           }
+                       #    }
                              })
   
   

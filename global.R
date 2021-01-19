@@ -56,13 +56,13 @@ display_missing_percentage <- function(data){
 }
 
 
-
+#df<-VIM::sleep
 miss_cols <- function(df){
   list_vars = list()
   miss_cols <- sapply(df,function(x) sum(is.na(x)))
   miss_cols <- names(miss_cols[miss_cols!=0])
-  miss_cols_class <- sapply(data[miss_cols], function(x) class(x))
-  miss_cols_int <- names(miss_cols_class[miss_cols_class=="integer"])
+  miss_cols_class <- sapply(df[miss_cols], function(x) class(x))
+  miss_cols_int <- names(miss_cols_class[miss_cols_class=="integer" | miss_cols_class=="numeric"])
   miss_cols_cat <- names(miss_cols_class[miss_cols_class=="character"|miss_cols_class=="factor"])
   
   list_vars[[1]] <- miss_cols_int
@@ -82,9 +82,15 @@ imputer <- function(df,num_method,cat_method=NULL,int_cols,cat_cols,original_fla
   return_data <- list()
   
   if(num_method=="mean"){
-    replaced_by  <- sapply(df_copy[int_cols],function(x) round(mean(x,na.rm = TRUE),2))
-    replaced_by <- as.data.frame(replaced_by)
-    colnames(replaced_by) <- c("replaced by")
+    if(!is.null(int_cols)){
+      replaced_by  <- sapply(df_copy[int_cols],function(x) round(mean(x,na.rm = TRUE),2))
+      replaced_by <- as.data.frame(replaced_by)
+      colnames(replaced_by) <- c("replaced by")
+    }else{
+      replaced_by<-NULL
+    }
+    
+    
     print(replaced_by)
     imputed_df <- sapply(df_copy[int_cols], function(x) impute(x, mean))
     colnames(imputed_df) <- paste0("imputed_",int_cols)
@@ -101,9 +107,14 @@ imputer <- function(df,num_method,cat_method=NULL,int_cols,cat_cols,original_fla
   
   
   if(num_method=="median"){
-    replaced_by  <- sapply(df_copy[int_cols],function(x) round(median(x,na.rm = TRUE),2))
-    replaced_by <- as.data.frame(replaced_by)
-    colnames(replaced_by) <- c("replaced by")
+    if(!is.null(int_cols)){
+      replaced_by  <- sapply(df_copy[int_cols],function(x) round(mean(x,na.rm = TRUE),2))
+      replaced_by <- as.data.frame(replaced_by)
+      colnames(replaced_by) <- c("replaced by")
+      
+    }else{
+      replaced_by<-NULL
+    }
     print(replaced_by)
     imputed_df <- sapply(df_copy[int_cols], function(x) impute(x, median))
     colnames(imputed_df) <- paste0("imputed_",int_cols)
