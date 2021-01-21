@@ -8,4 +8,6 @@ if (!require(VIM)) {install.packages("VIM")};  library(VIM)
 if (!require(shinyWidgets)) {install.packages("shinyWidgets")};  library(shinyWidgets)
 if (!require(tidyr)) {install.packages("tidyr")};  library(tidyr)
 if (!require(datasets)) {install.packages("datasets")};  library(datasets)
+if (!require(stringr)) {install.packages("stringr")};  library(stringr)
+
 #if (!require(caret)) {install.packages("caret")};  library(caret)
