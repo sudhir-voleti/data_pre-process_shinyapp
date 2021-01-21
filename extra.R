@@ -105,7 +105,7 @@ intcol
 
 imputer <- function(df,num_method,cat_method=NULL,int_cols,cat_cols,original_flag){
   df_copy <- df
-  replaced_by  <- sapply(data[int_cols],function(x) mean(x,na.rm = TRUE))
+  replaced_by  <- sapply(df_copy[int_cols],function(x) mean(x,na.rm = TRUE))
   imputed_df <- sapply(df_copy[int_cols], function(x) impute(x, mean))
   colnames(imputed_df) <- paste0("imputed_",int_cols)
   imputed_df_final <- cbind(df_copy,imputed_df)
@@ -138,3 +138,75 @@ plot(a, numbers = TRUE, prop = FALSE)
 
 
 x_imputed <- kNN(data)
+
+
+#Function 6 : data transformation
+
+MinMaxScaler <- function(colm0, a=0, b=1){
+  Max0 = max(colm0); Min0 = min(colm0)
+  colm1 = sapply(colm0, function(x) {(x-Min0)*(b-a)/(Max0 - Min0)})
+  return(colm1)
+}
+
+RobustScaler <- function(colm0){
+  q1 = as.numeric(quantile(colm0, 0.25))
+  q3 = as.numeric(quantile(colm0, 0.75))
+  colm1 = sapply(colm0, function(x) {(x - q1)/(q3 - q1)})
+  return(colm1)
+}
+
+StdScaler <- function(colm0){
+  colm1 = scale(colm0)
+  return(colm1)
+}
+
+df <-sleep
+
+data_transform <- function(df,method,cols,original_flag=TRUE){
+  if(method=="standard"){
+    transformed_df <- as.data.frame(sapply(df[,cols], function(x) StdScaler(x)))
+    colnames(transformed_df) <- paste0("std_",cols)
+    transfomed_df_final <- cbind(df,transformed_df)
+    
+    if(original_flag==TRUE){
+      return(transfomed_df_final)
+    }else{
+      transfomed_df_final[,cols] <- NULL
+      return(transfomed_df_final)
+    }
+  }
+  
+  
+  if(method=="minmax"){
+    transformed_df <- as.data.frame(sapply(df[,cols], function(x) MinMaxScaler(x)))
+    colnames(transformed_df) <- paste0("norm_",cols)
+    transfomed_df_final <- cbind(df,transformed_df)
+    
+    if(original_flag==TRUE){
+      return(transfomed_df_final)
+    }else{
+      transfomed_df_final[,cols] <- NULL
+      return(transfomed_df_final)
+    }
+  }
+  
+  
+  if(method=="robust"){
+    transformed_df <- as.data.frame(sapply(df[,cols], function(x) RobustScaler(x)))
+    colnames(transformed_df) <- paste0("robust_",cols)
+    transfomed_df_final <- cbind(df,transformed_df)
+    
+    if(original_flag==TRUE){
+      return(transfomed_df_final)
+    }else{
+      transfomed_df_final[,cols] <- NULL
+      return(transfomed_df_final)
+    }
+  }
+  
+}
+
+
+
+t <- data_transform(df,cols=c("mpg","cyl","disp"),method = "minmax",original_flag = TRUE)
+t1 <- data_transform(df,cols=c("mpg","cyl","disp"),method = "standard",original_flag = FALSE)

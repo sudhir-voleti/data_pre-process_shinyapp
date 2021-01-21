@@ -1,3 +1,18 @@
+valfn <- function(x) if(is.null(x) | is.na(x) | x=="") return("Input data is incorrect.")
+
+
+sample_data <- function(dataset_name){
+              # if(dataset_name=='sleep'){
+              #   return(VIM::sleep)
+              # }
+              # if (dataset_name=="diabetes"){
+              #   return(VIM::diabetes)
+              #   
+                get(dataset_name,'package:VIM')
+              }
+              
+#}
+
 
 data_frame_str <- function(data){
   df_str <- data.frame(variable = names(data),
@@ -11,7 +26,7 @@ data_frame_str <- function(data){
 display_missing_percentage <- function(data){
   # count total, missing value & its percentage 
   missing.values <- data %>%
-    gather(key = "key", value = "val") %>%
+    tidyr::gather(key = "key", value = "val") %>%
     mutate(isna = is.na(val)) %>%
     group_by(key) %>%
     mutate(total = n()) %>%
@@ -74,10 +89,10 @@ miss_cols <- function(df){
 
 
 #-----Imputer
-imputer <- function(df,num_method,cat_method=NULL,int_cols,cat_cols,original_flag){
-  print(int_cols)
-  print(cat_cols)
-  print(original_flag)
+imputer <- function(df,num_method,cat_method=NULL,int_cols,cat_cols,original_flag,replacement_ind){
+ # print(int_cols)
+ # print(cat_cols)
+ # print(original_flag)
   df_copy <- df
   return_data <- list()
   
@@ -91,8 +106,9 @@ imputer <- function(df,num_method,cat_method=NULL,int_cols,cat_cols,original_fla
     }
     
     
-    print(replaced_by)
+   # print(replaced_by)
     imputed_df <- sapply(df_copy[int_cols], function(x) impute(x, mean))
+    imputed_df <- round(imputed_df,2)
     colnames(imputed_df) <- paste0("imputed_",int_cols)
     imputed_df_final <- cbind(df_copy,imputed_df)
     
@@ -115,7 +131,7 @@ imputer <- function(df,num_method,cat_method=NULL,int_cols,cat_cols,original_fla
     }else{
       replaced_by<-NULL
     }
-    print(replaced_by)
+   # print(replaced_by)
     imputed_df <- sapply(df_copy[int_cols], function(x) impute(x, median))
     colnames(imputed_df) <- paste0("imputed_",int_cols)
     imputed_df_final <- cbind(df_copy,imputed_df)
@@ -148,13 +164,95 @@ imputer <- function(df,num_method,cat_method=NULL,int_cols,cat_cols,original_fla
     rownames(dim_after_imp) <- c("no of rows deleted")
     colnames(dim_after_imp) <- c("count")
     return(list(imputed_df,dim_after_imp))
+  }
+  
+  if(num_method=="knn"){
+    imputed_df <- VIM::kNN(df_copy,imp_var = TRUE)
+    temp <- imputed_df %>% select(ends_with("_imp"))
+    temp_df <- as.data.frame(sapply(temp, function(x) sum(x)))
+    colnames(temp_df) <- c("No of values replaced")
+    rownames(temp_df) <- str_replace(rownames(temp_df),"_imp","")
+    
+    if(replacement_ind==TRUE){
+      return(list(imputed_df,temp_df))
+    }else{
+      imputed_df <- imputed_df %>% select(-ends_with("_imp"))
+      return(list(imputed_df,temp_df))
     }
+    
+    
+    
+  }
   
   
-  
-  
-  
+}
 
+
+#Function 6 : data transformation
+
+MinMaxScaler <- function(colm0, a=0, b=1){
+  Max0 = max(colm0); Min0 = min(colm0)
+  colm1 = sapply(colm0, function(x) {(x-Min0)*(b-a)/(Max0 - Min0)})
+  colm1 = round(colm1,2)
+  return(colm1)
+}
+
+RobustScaler <- function(colm0){
+  q1 = as.numeric(quantile(colm0, 0.25,na.rm = TRUE))
+  q3 = as.numeric(quantile(colm0, 0.75,na.rm = TRUE))
+  colm1 = sapply(colm0, function(x) {(x - q1)/(q3 - q1)})
+  colm1 = round(colm1,2)
+  return(colm1)
+}
+
+StdScaler <- function(colm0){
+  colm1 = scale(colm0)
+  colm1 = round(colm1,2)
+  return(colm1)
+}
+
+
+data_transform <- function(df,method,cols,original_flag=TRUE){
+  if(method=="standard"){
+    transformed_df <- as.data.frame(sapply(df[,cols], function(x) StdScaler(x)))
+    colnames(transformed_df) <- paste0("std_",cols)
+    transfomed_df_final <- cbind(df,transformed_df)
+    
+    if(original_flag==TRUE){
+      return(transfomed_df_final)
+    }else{
+      transfomed_df_final[,cols] <- NULL
+      return(transfomed_df_final)
+    }
+  }
+  
+  
+  if(method=="minmax"){
+    transformed_df <- as.data.frame(sapply(df[,cols], function(x) MinMaxScaler(x)))
+    colnames(transformed_df) <- paste0("norm_",cols)
+    transfomed_df_final <- cbind(df,transformed_df)
+    
+    if(original_flag==TRUE){
+      return(transfomed_df_final)
+    }else{
+      transfomed_df_final[,cols] <- NULL
+      return(transfomed_df_final)
+    }
+  }
+  
+  
+  if(method=="robust"){
+    transformed_df <- as.data.frame(sapply(df[,cols], function(x) RobustScaler(x)))
+    colnames(transformed_df) <- paste0("robust_",cols)
+    transfomed_df_final <- cbind(df,transformed_df)
+    
+    if(original_flag==TRUE){
+      return(transfomed_df_final)
+    }else{
+      transfomed_df_final[,cols] <- NULL
+      return(transfomed_df_final)
+    }
+  }
   
 }
 

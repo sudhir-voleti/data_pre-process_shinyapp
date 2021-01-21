@@ -12,7 +12,7 @@ useSweetAlert()
 ui <- fluidPage(theme = shinytheme("cerulean"),
                 tagList(
                   tags$head(tags$script(type="text/javascript", src = "code.js")),
-                  navbarPage(title="Basic Data Analysis",
+                  navbarPage(title="Basic Data Prepration and Analysis",
                              tabPanel(title = "Upload Data",
                                       #titlePanel("Upload data for imputation"),
                                       
@@ -24,7 +24,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         h3("Load Example Datasets"),
                                             selectInput("ex_data",
                                                         label = "",
-                                                        choices=c(sleep="sleep"),#,titanic = "titanic"),
+                                                        choices=c("sleep","diabetes","mtcars"),
                                                         multiple = FALSE,
                                                         selectize = TRUE,
                                                         selected=sleep),
@@ -93,7 +93,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       ),
                              
                              
-                             tabPanel(title = "Missing Value",
+                             tabPanel(title = "Missing Value Imputation",
                                       #sidebarLayout(
                                         sidebarPanel(
                                           conditionalPanel(condition="input.tabselected==1",
@@ -105,12 +105,14 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                            uiOutput('intvars2imp'),
                                                            selectInput("selIntImpMethod",
                                                                        label = "Imputation Method",
-                                                                       choices=c(mean="mean",
+                                                                       choices=c(kNN ="knn",
+                                                                                  mean="mean",
                                                                                  complete_case = "complete_case",
                                                                                  median = "median"),
                                                                        multiple = FALSE,
                                                                        selectize = TRUE,
                                                                        selected=NULL),
+                                                           uiOutput("knn_parms"),
                                                            hr(),
                                                            h4("Categorical Variable"),
                                                            uiOutput('catvars2imp'),
@@ -154,7 +156,33 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                      # )
                              ),
                              
-                             tabPanel(title = "Dummy Variables",
+                             tabPanel(title="Data Transformation",
+                                      sidebarLayout(
+                                        sidebarPanel(
+                                          h4("select columns for Standardization"),
+                                          uiOutput('std_vars'),
+                                          hr(),
+                                          radioButtons("method",
+                                                             label = "select transformation method",
+                                                             choices = c("Normalization"='minmax',
+                                                                         "Standardization" = 'standard',
+                                                                         "Robust Scaling" ="robust",
+                                                                         "None" = "none"
+                                                                         )
+                                                              ),
+                                          
+                                          checkboxInput("orig_col1","Keep Original Columns",value = TRUE),
+                                          actionButton("transform","Transform"),
+                                          downloadButton("trans_download")
+                                        ),
+                                        mainPanel(
+                                          h4("Transformed Data"),
+                                          dataTableOutput("trans_df")
+                                        )
+                                      )),
+                             
+                             
+                             tabPanel(title = "Dummy Encoding",
                                       sidebarLayout(
                                         sidebarPanel(
                                             h4("Select columns to encode"),

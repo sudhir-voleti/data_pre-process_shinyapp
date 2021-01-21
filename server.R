@@ -8,11 +8,14 @@ server <- function(input, output,session) {
                     textInput("na_text", "Input", "please enter NA string")
                     }
                         })
-  # Tab-1----
+#------------------------------------------------------Tab-1 Data Upload-----------------------------------------------#
   
   data <- reactive({
             if (is.null(input$file)) { 
-              return(VIM::sleep)
+               
+              df <- sample_data(input$ex_data)
+              
+              return(df)
               
               
               
@@ -30,8 +33,9 @@ server <- function(input, output,session) {
   
   output$head <- renderDataTable({head(data(),n = 10)})
   
-  # tab-2 Non-Metric Detection & Conversion ------
-  data_fr_str <- reactive({data_frame_str(data())})
+  
+#----------------------------------------------------Tab-2 Non-Metric Detection & Conversion ----------------------------#
+  data_fr_str <- reactive({data_frame_str(data())}) # get structure of uploaded dataset
   
   
   output$df_str <- renderDataTable({
@@ -39,7 +43,7 @@ server <- function(input, output,session) {
   })
   
   
-  #if unique value of any column is less than 10 and it is numeric then select it automatically for conversion
+  #if unique value of any column is less than 7 and it is numeric or integer then auto-select it  for factor conversion
   output$vars2conv_fact <- renderUI({
     #if (is.null(input$file)) { return(NULL) }
     #else{
@@ -61,22 +65,35 @@ server <- function(input, output,session) {
     
     data_copy <- data()
     Factors <- input$selVar2conv
-    print(data_copy[Factors])
-    data_copy[Factors]<-lapply(data_copy[Factors],factor)
-    print(str(data_copy))
-    values$df_data <- data_copy
+   # print(Factors)
+    if(is.null(Factors)){
+      values$df_data <- data_copy
+    }else{
+      data_copy[Factors]<-lapply(data_copy[Factors],factor)
+    #  print(str(data_copy))
+      values$df_data <- data_copy
+    }
+   # print(data_copy[Factors])
+    
     
   })
   
   
   
-  data_fac <- reactive({values$df_data}) # convereted factorial dataset
+  data_fac <- reactive({if(is.null(values$df_data))
+    {
+    return(data())
+  }else{
+      return(values$df_data)
+    }
+    
+    }) # convereted factorial dataset
   
   output$df_conv_str <- renderDataTable({head(data_frame_str(data_fac()),n=10)})
 
  
   
-  # tab-3 Missing Value----
+#------------------------------------------------- Tab-3 Missing Value--------------------------------------------#
   
   # sub-tab-1
   output$missing_plot <- renderPlot({
@@ -93,16 +110,26 @@ server <- function(input, output,session) {
    # if (is.null(input$file)) { return(NULL) }
    # else{
       int_cols <- miss_cols_list()
+      print(int_cols)
       cols <- int_cols[[1]]
       selectInput("IntVar2Imp",
                   label = "Select numerical columns for imputation ",
-                  choices=names(data_fac()),
+                  choices=cols,
                   multiple = TRUE,
                   selectize = TRUE,
                   selected=cols)
    # }
   })
-
+  
+  output$knn_parms <- renderUI({
+      if(input$selIntImpMethod!='knn'){
+        return(NULL)}
+      else{
+        checkboxInput("ind","create replacement indicator",value = TRUE)
+      }
+    })
+  
+  
   # list of categorical columns for imputation  
   output$catvars2imp <- renderUI({
     #if (is.null(input$file)) { return(NULL) }
@@ -111,7 +138,7 @@ server <- function(input, output,session) {
       cols <- cat_cols[[2]]
       selectInput("CatVar2Imp",
                   label = "Select categorical columns for imputation",
-                  choices=names(data_fac()),
+                  choices=cols,
                   multiple = TRUE,
                   selectize = TRUE,
                   selected=cols)
@@ -129,7 +156,13 @@ server <- function(input, output,session) {
   #           )
   # })
   
-  values1 <- reactiveValues(df_imputed = NULL) 
+  values1 <- reactiveValues(
+                          # if(is.null(input$IntVar2Imp)){return(data_fac())}
+                          #    else{return(NULL)}
+                             df_imputed = NULL
+                          ) #imputed df after factor conversion
+  
+  
   values2 <- reactiveValues(replaced_by = NULL) 
   
   observeEvent(input$imp, {
@@ -138,9 +171,9 @@ server <- function(input, output,session) {
       values1$df_imputed <- data_fac()
       sendSweetAlert(
         session = session,
-        title = "Warning !!! Select Variable",
-        text = NULL,
-        type = "warning"
+        title = "Information",
+        text = "Since no variable is Imputed, data from previous tab will be used in Transformation tab",
+        type = "info"
       )
       
     }else{
@@ -150,14 +183,15 @@ server <- function(input, output,session) {
                              cat_method = input$selCatImpMethod,
                              int_cols = input$IntVar2Imp,
                              cat_cols = input$CatVar2Imp,
-                             original_flag = input$orig_col
+                             original_flag = input$orig_col,
+                             replacement_ind = ifelse(!is.null(input$ind),input$ind,FALSE)
       )
       values1$df_imputed <- imputed_df[[1]]
       values2$replaced_by <- imputed_df[[2]]
       sendSweetAlert(
         session = session,
         title = "Imputed Successfully !!",
-        text = "All in order",
+        text = NULL,
         type = "success"
       )
     }
@@ -182,18 +216,129 @@ server <- function(input, output,session) {
     }
   )
   
+  #--------------------------------------------------- Tab-4 Data Transformation-------------------------------------------#
+  
+  values3 <- reactiveValues(trans_df = NULL) 
   
   
-  # tab-4 Dummy Variables------
+  df_imputed <- reactive({
+    
+    if(is.null(values1$df_imputed)){
+    return(data())
+    }else{
+      return(values1$df_imputed)
+    }
+    })
+  
+  df_imputed_cols <- reactive({df_imp_str <- data_frame_str(df_imputed())
+                              int_cols <- df_imp_str %>% filter(class=="numeric"| class=="integer")
+                              return(int_cols$variable)
+                              
+                              })
+ # cols_to_tr <- reactive({miss_cols(df_imputed())})
+
+  output$std_vars <- renderUI({
+    
+    
+    cols <- df_imputed_cols()
+    # if (is.null(input$file)) { return(NULL) }
+    # else{
+    #int_cols <- c("a","b")
+    print(cols)
+    #int_cols <- cols_to_tr[[1]]
+    #print(int_cols)
+    #cols <- int_cols[[1]]
+    selectInput("trans_cols",
+                label = "Select numerical columns for imputation ",
+                choices=cols,
+                multiple = TRUE,
+                selectize = TRUE,
+                selected=cols)
+    # }
+  })
+  
+  
+  observeEvent(input$transform, {
+    
+    if(is.null(input$trans_cols)){
+      values3$trans_df <- df_imputed()
+      sendSweetAlert(
+        session = session,
+        title = "Information",
+        text = "Since no variable is selected, data from previous tab will be used in dummy tab",
+        type = "info"
+      )
+      
+    }else{
+      df <- df_imputed()
+      
+      trans_df <- data_transform(df = df,
+                                 method = input$method,
+                                 cols = input$trans_cols,
+                                 original_flag = input$orig_col1)
+      
+      
+      values3$trans_df <- trans_df
+      
+      sendSweetAlert(
+        session = session,
+        title = "Transformed Successfully !!",
+        text = NULL,
+        type = "success"
+      )
+    }
+    
+    
+    
+  })
+  
+  
+  output$trans_download <- downloadHandler(
+    filename = function() {
+      paste("transformed", ".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(values3$trans_df, file, row.names = FALSE)
+    }
+  )
+  
+  
+  
+  # 
+  # 
+  # 
+  # trans_df <- reactive({data_transform(df = df_imputed(),
+  #                                      method = input$method,
+  #                                      cols = input$trans,
+  #                                      original_flag = input$orig_col1)})
+  
+  output$trans_df <- renderDataTable({head(values3$trans_df,10)})
+  
+#--------------------------------------------------- Tab-5 Dummy Variables-------------------------------------------#
+  
+  df_transformed <- reactive({
+    
+    if(is.null(values3$trans_df)){
+      return(data())
+    }else{
+      return(values3$trans_df)
+    }
+  })
+  
+  
+  
+  
+  
+  
   
   output$vars2conv <- renderUI({
                       #if (is.null(input$file)) { return(NULL) }
                      # else{
-                         df <- values1$df_imputed
+                         df <- df_transformed()
                          cols <- names(df%>%select_if(is.factor))
                          selectInput("selVar",
                          label = "Select columns for conversion ",
-                         choices=names(df),
+                         choices=cols,
                          multiple = TRUE,
                          selectize = TRUE,
                          selected=cols)
@@ -206,13 +351,13 @@ server <- function(input, output,session) {
   
   observeEvent(input$conv2, {
     
-    if(length(input$selVar)==0){return(data())}
+    if(is.null(input$selVar)){return(data())}
     else{
       if (input$selVar == ""){
-        values_dummy$dummy_df <- data_fac()
+        values_dummy$dummy_df <- values3$trans_df
       }else{
-        
-        dummy_df <- dummy_columns(data_fac(),
+        df <- values3$trans_df
+        dummy_df <- dummy_columns(df,
                                   select_columns = input$selVar,
                                   remove_selected_columns = input$rem_org,
                                   remove_first_dummy = input$rem_first_dum,

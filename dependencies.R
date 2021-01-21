@@ -6,5 +6,6 @@ if (!require(fastDummies)) {install.packages("fastDummies")};  library(fastDummi
 if (!require(Hmisc)) {install.packages("Hmisc")};  library(Hmisc)
 if (!require(VIM)) {install.packages("VIM")};  library(VIM)
 if (!require(shinyWidgets)) {install.packages("shinyWidgets")};  library(shinyWidgets)
-
+if (!require(tidyr)) {install.packages("tidyr")};  library(tidyr)
 if (!require(datasets)) {install.packages("datasets")};  library(datasets)
+if (!require(caret)) {install.packages("caret")};  library(caret)
