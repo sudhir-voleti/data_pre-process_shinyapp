@@ -6,6 +6,12 @@ library(dplyr)
 library(fastDummies)
 library(Hmisc)
 library(shinyWidgets)
+library(shinyhelper)
+library(VIM)
+library(summarytools)
+library(descriptr)
+library(DataExplorer)
+
 
 useSweetAlert()
 
@@ -13,7 +19,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                 tagList(
                   tags$head(tags$script(type="text/javascript", src = "code.js")),
                   navbarPage(title="Basic Data Prepration and Analysis",
-                             tabPanel(title = "Upload Data",
+                             tabPanel(title = "Upload Data",icon = icon('upload', lib = 'glyphicon'),
                                       #titlePanel("Upload data for imputation"),
                                       
                                       
@@ -21,13 +27,21 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       
                                       fluidRow(
                                         hr(),
-                                        h3("Load Example Datasets"),
-                                            selectInput("ex_data",
-                                                        label = "",
-                                                        choices=c("sleep","diabetes","mtcars"),
-                                                        multiple = FALSE,
-                                                        selectize = TRUE,
-                                                        selected=sleep),
+                                        
+                                        column(3,
+                                               h3("Load Example Datasets"),
+                                               uiOutput("data_helper"),
+                                               selectInput("ex_data",
+                                                           label = "",
+                                                           choices=c("sleep","diabetes","mtcars"),
+                                                           multiple = FALSE,
+                                                           selectize = TRUE,
+                                                           selected=sleep),
+                                               
+                                               
+                                               
+                                               )
+                                        
                                         #actionButton("load_dataset", "Load",icon = )
 
                                       ),
@@ -73,6 +87,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       
                              ),# end of tabpanel-1
                              
+                             source('ui/ui_dummy_en_EDA.R', local = TRUE)[[1]],
                              
                              tabPanel(title="Non-Metric Detection & Conversion",
                                       sidebarLayout(
@@ -156,21 +171,28 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                      # )
                              ),
                              
-                             tabPanel(title="Data Transformation",
+                             tabPanel(title="Data Transformation",icon = icon('transfer', lib = 'glyphicon'),
                                       sidebarLayout(
                                         sidebarPanel(
                                           h4("select columns for Standardization"),
                                           uiOutput('std_vars'),
                                           hr(),
+                                          
                                           radioButtons("method",
                                                              label = "select transformation method",
-                                                             choices = c("Normalization"='minmax',
-                                                                         "Standardization" = 'standard',
+                                                             choices = c("Normalization  (minmax)"='minmax',
+                                                                         "Standardization (mean=0,sd=1)" = 'standard',
                                                                          "Robust Scaling" ="robust",
                                                                          "None" = "none"
                                                                          )
                                                               ),
-                                          
+                                          #%>%
+                                          # helper(type = "inline",
+                                          #        title = "Inline Help",
+                                          #        content = c("This helpfile is defined entirely in the UI!",
+                                          #                    "This is on a new line.",
+                                          #                    "This is some <b>HTML</b>."),
+                                          #        size = "s"),
                                           checkboxInput("orig_col1","Keep Original Columns",value = TRUE),
                                           actionButton("transform","Transform"),
                                           downloadButton("trans_download")
@@ -217,13 +239,23 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                              )
                              
                              
+                                                  #source('ui/ui_dummy_en_EDA.R', local = TRUE)[[1]]
+                                                  # source('ui/ui_freq_qual.R', local = TRUE)[[1]],
+                                                  # source('ui/ui_freq_quant.R', local = TRUE)[[1]],
+                                                  # source('ui/ui_cross.R', local = TRUE)[[1]],
+                                                  # source('ui/ui_mult1.R', local = TRUE)[[1]],
+                                                  # source('ui/ui_mult2.R', local = TRUE)[[1]],
+                                                  # source('ui/ui_group_summary.R', local = TRUE)[[1]]
+                                                   
+                                      
+                             )
                              
                   )# end of navbarpage
                   
                   
                 )# end of taglist
   
-  )# end of fluidpage
+#  )# end of fluidpage
 
   
   

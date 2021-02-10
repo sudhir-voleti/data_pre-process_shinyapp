@@ -2,12 +2,31 @@
 
 server <- function(input, output,session) {
   
+  observe_helpers(help_dir = "helper", withMathJax = TRUE)
+  
+  
+  
+  output$data_helper <- renderUI({
+    
+    helper(shiny_tag = "",
+          icon = "question",
+           colour = "green",
+           type = "markdown",
+           content = input$ex_data
+          )
+  })
+  
   output$text <- renderUI({
                     if(input$na_str=="other")
                     {
                     textInput("na_text", "Input", "please enter NA string")
                     }
                         })
+  
+  
+  
+  
+  
 #------------------------------------------------------Tab-1 Data Upload-----------------------------------------------#
   
   data <- reactive({
@@ -292,10 +311,22 @@ server <- function(input, output,session) {
     
   })
   
+  # output$downloadData1 <- downloadHandler(
+  #   filename = function() { paste(str_split(input$file$name,"\\.")[[1]][1],"_centralities.csv",collapse = "") },
+  #   content = function(file) {
+  #     write.csv(centralities(), file, row.names=F)
+  #   }
+  # )
+  
   
   output$trans_download <- downloadHandler(
     filename = function() {
-      paste("transformed", ".csv", sep = "")
+     # if (is.null(input$file)){
+      #  paste(str_split(input$file$name,"\\.")[[1]][1],"_transformed.csv",collapse = "")
+     # }else{
+        paste("transformed", ".csv", sep = "")
+      #}
+      
     },
     content = function(file) {
       write.csv(values3$trans_df, file, row.names = FALSE)
@@ -402,8 +433,176 @@ server <- function(input, output,session) {
    )
    
    
+#-------------------------TAB-5 Summary Report---------------------------------------------
+    
+   # Tab-1 data screen
+   output$screen_summary <- renderPrint({ds_screener(data())})
+   
+   # Tab-2 Summary Stats
+   output$num_var_for_summary <- renderUI({
+     # if (is.null(input$file)) { return(NULL) }
+     # else{
+     int_cols_1 <- names(dplyr::select_if(data(),is.numeric))
+     print(int_cols_1)
+     #print(int_cols)
+     #cols <- int_cols[[1]]
+     selectInput("num_var",
+                 label = "",
+                 choices=int_cols_1,
+                 multiple = FALSE,
+                 selectize = TRUE,
+                 selected=int_cols_1)
+     # }
+   })
+   
+   # selected data
+   d_summary <- eventReactive(input$submit_summary, {
+     # validate(need(input$var_summary != '', 'Please select a variable.'))
+     req(input$num_var)
+     ds_summary_stats(data(), !! sym(input$num_var))
+   })
    
    
+   output$num_summary <- renderPrint({
+     d_summary()
+   })
+   
+   
+   
+#----Tab 3 Freq Qual
+   output$cat_var_for_freq <- renderUI({
+     # if (is.null(input$file)) { return(NULL) }
+     # else{
+     cat_cols_1 <- names(dplyr::select_if(data(),is.factor))
+    # print(int_cols_1)
+     #print(int_cols)
+     #cols <- int_cols[[1]]
+     selectInput("char_var",
+                 label = "",
+                 choices=cat_cols_1,
+                 multiple = FALSE,
+                 selectize = TRUE,
+                 selected=cat_cols_1)
+     # }
+   })
+   
+   
+   
+   f1_title <- eventReactive(input$submit_fqual, {
+     h3('Frequency Table')
+   })
+   
+   output$freq1_title <- renderUI({
+     f1_title()
+   })
+  
+   fqual_out <- eventReactive(input$submit_fqual, {
+     if(as.character(input$char_var)==""){return(NULL)}
+     else{
+       ki <- ds_freq_table(data(), !! sym(as.character(input$char_var)))
+       ki
+     }
+    
+   })
+   
+   # output
+   output$freq_qual <- renderPrint({
+     fqual_out()
+   })
+   
+   output$qual_vert <- renderPlot({
+     if(input$submit_fqual==0 | as.character(input$char_var)=="" ){return(NULL)}
+     else{
+       plot(fqual_out())
+     }
+     
+   })
 
+   
+#------Tab 4 Frequency-Quantitative
+   output$cont_var_for_freq <- renderUI({
+     # if (is.null(input$file)) { return(NULL) }
+     # else{
+     cont_cols_1 <- names(dplyr::select_if(data(),is.numeric))
+     # print(int_cols_1)
+     #print(int_cols)
+     #cols <- int_cols[[1]]
+     selectInput("cont_var",
+                 label = "",
+                 choices=cont_cols_1,
+                 multiple = FALSE,
+                 selectize = TRUE,
+                 selected=cont_cols_1)
+     # }
+   })
+   
+   
+   
+   # selected data
+   d_freq_quant <- eventReactive(input$submit_fquant, {
+     data <- data()[, input$cont_var]
+   })
+   # 
+   # # update filter slider
+   # observe({
+   #   updateSliderInput(session = session,
+   #                     inputId = 'filter_quant',
+   #                     min = min(d_freq_quant()),
+   #                     max = max(d_freq_quant()),
+   #                     step = 1,
+   #                     value = c(min(d_freq_quant()), max(d_freq_quant()))
+   #   )
+   # })
+   # 
+   # 
+   
+   # # # filters
+   # fil_quant_data <- reactive({
+   #   
+   #   min_data <- input$filter_quant[1]
+   #   max_data <- input$filter_quant[2]
+   #   
+   #   # f_data <- d_summary()[d_summary()[, 1] >= min_data & d_summary()[, 1] <= max_data, 1]
+   #   f_data <- d_freq_quant()[d_freq_quant() >= min_data & d_freq_quant() <= max_data]
+   #   fdata <- as.data.frame(f_data)
+   #   names(fdata) <- as.character(input$var_freq_quant)
+   #   fdata
+   # })
+   # 
+   
+   
+   f1_title <- eventReactive(input$submit_fquant, {
+     h3('Frequency Table')
+   })
+   
+   output$freq2_title <- renderUI({
+     f1_title()
+   })
+   
+   fquant_out <- eventReactive(input$submit_fquant, {
+     ki <- ds_freq_table(data(), !! sym(as.character(input$cont_var)),input$bins)
+     ki
+   })
+   
+   # output
+   output$freq_quant <- renderPrint({
+     fquant_out()
+   })
+   
+   output$hist_freq_quant <- renderPlot({
+     if(input$submit_fquant==0){return(NULL)}
+     else{
+       plot(fquant_out())
+     }
+     
+   })
+   
+#----Tab 5 Corr Plot
+   output$corr_plot <- renderPlot({
+     complete_data <- data()[complete.cases(data()),]
+     plot_correlation(complete_data, type = "continuous") # for continuous vars
+     
+   })
+   
 }
 

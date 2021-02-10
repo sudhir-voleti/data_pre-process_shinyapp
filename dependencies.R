@@ -9,5 +9,10 @@ if (!require(shinyWidgets)) {install.packages("shinyWidgets")};  library(shinyWi
 if (!require(tidyr)) {install.packages("tidyr")};  library(tidyr)
 if (!require(datasets)) {install.packages("datasets")};  library(datasets)
 if (!require(stringr)) {install.packages("stringr")};  library(stringr)
+if (!require(shinyhelper)) {install.packages("shinyhelper")};  library(shinyhelper)
+if (!require(summarytools)) {install.packages("summarytools")};  library(summarytools)
+if (!require(descriptr)) {install.packages("descriptr")};  library(descriptr)
+if (!require(DataExplorer)){install.packages("DataExplorer")}; library(DataExplorer)
+
 
 #if (!require(caret)) {install.packages("caret")};  library(caret)
