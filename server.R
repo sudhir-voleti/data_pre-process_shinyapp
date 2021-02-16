@@ -9,51 +9,51 @@ server <- function(input, output,session) {
   output$data_helper <- renderUI({
     
     helper(shiny_tag = "",
-          icon = "question",
+           icon = "question",
            colour = "green",
            type = "markdown",
            content = input$ex_data
-          )
+    )
   })
   
   output$text <- renderUI({
-                    if(input$na_str=="other")
-                    {
-                    textInput("na_text", "Input", "please enter NA string")
-                    }
-                        })
+    if(input$na_str=="other")
+    {
+      textInput("na_text", "Input", "please enter NA string")
+    }
+  })
   
   
   
   
   
-#------------------------------------------------------Tab-1 Data Upload-----------------------------------------------#
+  #------------------------------------------------------Tab-1 Data Upload-----------------------------------------------#
   
   data <- reactive({
-            if (is.null(input$file)) { 
-               
-              df <- sample_data(input$ex_data)
-              
-              return(df)
-              
-              
-              
-              }
-            else{
-              df <- read.csv(input$file$datapath,
-                             sep = input$sep,
-                             na.strings = if(input$na_str=="other"){input$na_text}else{input$na_str},
-                             header = input$header,stringsAsFactors = TRUE
-                             )
-              return(df)
-            }
-                  })
+    if (is.null(input$file)) { 
+      
+      df <- sample_data(input$ex_data)
+      
+      return(df)
+      
+      
+      
+    }
+    else{
+      df <- read.csv(input$file$datapath,
+                     sep = input$sep,
+                     na.strings = if(input$na_str=="other"){input$na_text}else{input$na_str},
+                     header = input$header,stringsAsFactors = TRUE
+      )
+      return(df)
+    }
+  })
   
   
   output$head <- renderDataTable({head(data(),n = 10)})
   
   
-#----------------------------------------------------Tab-2 Non-Metric Detection & Conversion ----------------------------#
+  #----------------------------------------------------Tab-2 Non-Metric Detection & Conversion ----------------------------#
   data_fr_str <- reactive({data_frame_str(data())}) # get structure of uploaded dataset
   
   
@@ -66,15 +66,15 @@ server <- function(input, output,session) {
   output$vars2conv_fact <- renderUI({
     #if (is.null(input$file)) { return(NULL) }
     #else{
-      cond_df <- data_fr_str() %>% filter((class=="numeric"| class=="integer") & unique_value_count<7)
-      cols <- cond_df$variable
-      selectInput("selVar2conv",
-                  label = "Select columns for factor conversion ",
-                  choices=names(data()),
-                  multiple = TRUE,
-                  selectize = TRUE,
-                  selected=cols)
-   # }
+    cond_df <- data_fr_str() %>% filter((class=="numeric"| class=="integer") & unique_value_count<7)
+    cols <- cond_df$variable
+    selectInput("selVar2conv",
+                label = "Select columns for factor conversion ",
+                choices=names(data()),
+                multiple = TRUE,
+                selectize = TRUE,
+                selected=cols)
+    # }
   })
   
   
@@ -84,15 +84,15 @@ server <- function(input, output,session) {
     
     data_copy <- data()
     Factors <- input$selVar2conv
-   # print(Factors)
+    # print(Factors)
     if(is.null(Factors)){
       values$df_data <- data_copy
     }else{
       data_copy[Factors]<-lapply(data_copy[Factors],factor)
-    #  print(str(data_copy))
+      #  print(str(data_copy))
       values$df_data <- data_copy
     }
-   # print(data_copy[Factors])
+    # print(data_copy[Factors])
     
     
   })
@@ -100,19 +100,19 @@ server <- function(input, output,session) {
   
   
   data_fac <- reactive({if(is.null(values$df_data))
-    {
+  {
     return(data())
   }else{
-      return(values$df_data)
-    }
+    return(values$df_data)
+  }
     
-    }) # convereted factorial dataset
+  }) # convereted factorial dataset
   
   output$df_conv_str <- renderDataTable({head(data_frame_str(data_fac()),n=10)})
-
- 
   
-#------------------------------------------------- Tab-3 Missing Value--------------------------------------------#
+  
+  
+  #------------------------------------------------- Tab-3 Missing Value--------------------------------------------#
   
   # sub-tab-1
   output$missing_plot <- renderPlot({
@@ -126,42 +126,42 @@ server <- function(input, output,session) {
   
   # list of integer column for imputation
   output$intvars2imp <- renderUI({
-   # if (is.null(input$file)) { return(NULL) }
-   # else{
-      int_cols <- miss_cols_list()
-      print(int_cols)
-      cols <- int_cols[[1]]
-      selectInput("IntVar2Imp",
-                  label = "Select numerical columns for imputation ",
-                  choices=cols,
-                  multiple = TRUE,
-                  selectize = TRUE,
-                  selected=cols)
-   # }
+    # if (is.null(input$file)) { return(NULL) }
+    # else{
+    int_cols <- miss_cols_list()
+    print(int_cols)
+    cols <- int_cols[[1]]
+    selectInput("IntVar2Imp",
+                label = "Select numerical columns for imputation ",
+                choices=cols,
+                multiple = TRUE,
+                selectize = TRUE,
+                selected=cols)
+    # }
   })
   
   output$knn_parms <- renderUI({
-      if(input$selIntImpMethod!='knn'){
-        return(NULL)}
-      else{
-        checkboxInput("ind","create replacement indicator",value = TRUE)
-      }
-    })
+    if(input$selIntImpMethod!='knn'){
+      return(NULL)}
+    else{
+      checkboxInput("ind","create replacement indicator",value = TRUE)
+    }
+  })
   
   
   # list of categorical columns for imputation  
   output$catvars2imp <- renderUI({
     #if (is.null(input$file)) { return(NULL) }
-   # else{
-      cat_cols <- miss_cols_list()
-      cols <- cat_cols[[2]]
-      selectInput("CatVar2Imp",
-                  label = "Select categorical columns for imputation",
-                  choices=cols,
-                  multiple = TRUE,
-                  selectize = TRUE,
-                  selected=cols)
-   # }
+    # else{
+    cat_cols <- miss_cols_list()
+    cols <- cat_cols[[2]]
+    selectInput("CatVar2Imp",
+                label = "Select categorical columns for imputation",
+                choices=cols,
+                multiple = TRUE,
+                selectize = TRUE,
+                selected=cols)
+    # }
   })
   
   
@@ -176,10 +176,10 @@ server <- function(input, output,session) {
   # })
   
   values1 <- reactiveValues(
-                          # if(is.null(input$IntVar2Imp)){return(data_fac())}
-                          #    else{return(NULL)}
-                             df_imputed = NULL
-                          ) #imputed df after factor conversion
+    # if(is.null(input$IntVar2Imp)){return(data_fac())}
+    #    else{return(NULL)}
+    df_imputed = NULL
+  ) #imputed df after factor conversion
   
   
   values2 <- reactiveValues(replaced_by = NULL) 
@@ -188,8 +188,6 @@ server <- function(input, output,session) {
     
     if(is.null(input$IntVar2Imp)){
       values1$df_imputed <- data_fac()
-      imputed_df <- list()
-      imputed_df[[1]] <- data_fac()
       sendSweetAlert(
         session = session,
         title = "Information",
@@ -207,43 +205,17 @@ server <- function(input, output,session) {
                              original_flag = input$orig_col,
                              replacement_ind = ifelse(!is.null(input$ind),input$ind,FALSE)
       )
-     
-    }
-    if(!is.null(input$CatVar2Imp)){
-      cat_cols <- input$CatVar2Imp
-      df_imputed_temp <- imputed_df[[1]][,cat_cols]
-      if(input$orig_col==TRUE){
-        for (cols in cat_cols) {
-          if (cols %in% names(df_imputed_temp[,sapply(df_imputed_temp, is.factor)])) {
-            df_imputed_temp_1<-df_imputed_temp%>%
-              mutate(!!cols := replace(!!rlang::sym(cols), !!rlang::sym(cols)=="", getmode(!!rlang::sym(cols))))
-            imputed_df[[2]]<- getmode(imputed_df[[1]][,cols])
-            }
-        }
-        colnames(df_imputed_temp_1) <- paste0("imputed_",cat_cols)
-        imputed_df[[1]] <- cbind(imputed_df[[1]],df_imputed_temp_1)
-        
-      }else{
-        for (cols in cat_cols) {
-          if (cols %in% names(df[,sapply(df, is.factor)])) {
-            imputed_df[[1]]<-imputed_df[[1]]%>%
-              mutate(!!cols := replace(!!rlang::sym(cols), !!rlang::sym(cols)=="", getmode(!!rlang::sym(cols))))
-            imputed_df[[2]]<- getmode(imputed_df[[1]][,cols])
-            }
-      }
-      
-      
-      }
+      values1$df_imputed <- imputed_df[[1]]
+      values2$replaced_by <- imputed_df[[2]]
+      sendSweetAlert(
+        session = session,
+        title = "Imputed Successfully !!",
+        text = NULL,
+        type = "success"
+      )
     }
     
-    values1$df_imputed <- imputed_df[[1]]
-    values2$replaced_by <- imputed_df[[2]]
-    sendSweetAlert(
-      session = session,
-      title = "Imputed Successfully !!",
-      text = NULL,
-      type = "success")
-  
+    
     
   })
   
@@ -271,19 +243,19 @@ server <- function(input, output,session) {
   df_imputed <- reactive({
     
     if(is.null(values1$df_imputed)){
-    return(data())
+      return(data())
     }else{
       return(values1$df_imputed)
     }
-    })
+  })
   
   df_imputed_cols <- reactive({df_imp_str <- data_frame_str(df_imputed())
-                              int_cols <- df_imp_str %>% filter(class=="numeric"| class=="integer")
-                              return(int_cols$variable)
-                              
-                              })
- # cols_to_tr <- reactive({miss_cols(df_imputed())})
-
+  int_cols <- df_imp_str %>% filter(class=="numeric"| class=="integer")
+  return(int_cols$variable)
+  
+  })
+  # cols_to_tr <- reactive({miss_cols(df_imputed())})
+  
   output$std_vars <- renderUI({
     
     
@@ -349,10 +321,10 @@ server <- function(input, output,session) {
   
   output$trans_download <- downloadHandler(
     filename = function() {
-     # if (is.null(input$file)){
+      # if (is.null(input$file)){
       #  paste(str_split(input$file$name,"\\.")[[1]][1],"_transformed.csv",collapse = "")
-     # }else{
-        paste("transformed", ".csv", sep = "")
+      # }else{
+      paste("transformed", ".csv", sep = "")
       #}
       
     },
@@ -373,7 +345,7 @@ server <- function(input, output,session) {
   
   output$trans_df <- renderDataTable({head(values3$trans_df,10)})
   
-#--------------------------------------------------- Tab-5 Dummy Variables-------------------------------------------#
+  #--------------------------------------------------- Tab-5 Dummy Variables-------------------------------------------#
   
   df_transformed <- reactive({
     
@@ -391,18 +363,18 @@ server <- function(input, output,session) {
   
   
   output$vars2conv <- renderUI({
-                      #if (is.null(input$file)) { return(NULL) }
-                     # else{
-                         df <- df_transformed()
-                         cols <- names(df%>%select_if(is.factor))
-                         selectInput("selVar",
-                         label = "Select columns for conversion ",
-                         choices=cols,
-                         multiple = TRUE,
-                         selectize = TRUE,
-                         selected=cols)
-                       #    }
-                             })
+    #if (is.null(input$file)) { return(NULL) }
+    # else{
+    df <- df_transformed()
+    cols <- names(df%>%select_if(is.factor))
+    selectInput("selVar",
+                label = "Select columns for conversion ",
+                choices=cols,
+                multiple = TRUE,
+                selectize = TRUE,
+                selected=cols)
+    #    }
+  })
   
   
   
@@ -423,7 +395,7 @@ server <- function(input, output,session) {
                                   ignore_na = input$ign_NA)
         values_dummy$dummy_df <- dummy_df
       }
-     
+      
     }
     
     
@@ -433,205 +405,205 @@ server <- function(input, output,session) {
   
   data_fac_dummy <- reactive({values_dummy$dummy_df}) # convereted factorial dataset
   
-   # dummy_data <- reactive({
-   #                      if(length(input$selVar)==0){return(data())}
-   #                      else{
-   #                          dummy_df <- dummy_columns(data(),
-   #                                                    select_columns = input$selVar,
-   #                                                    remove_selected_columns = input$rem_org,
-   #                                                    remove_first_dummy = input$rem_first_dum,
-   #                                                    ignore_na = input$ign_NA)
-   #                      return(dummy_df)
-   #                          }
-   #                        })
+  # dummy_data <- reactive({
+  #                      if(length(input$selVar)==0){return(data())}
+  #                      else{
+  #                          dummy_df <- dummy_columns(data(),
+  #                                                    select_columns = input$selVar,
+  #                                                    remove_selected_columns = input$rem_org,
+  #                                                    remove_first_dummy = input$rem_first_dum,
+  #                                                    ignore_na = input$ign_NA)
+  #                      return(dummy_df)
+  #                          }
+  #                        })
   
-   
-   output$dummy_table <- renderDataTable({
-                                  head(data_fac_dummy(),
-                                       n=10)})
-   
-   
-   output$dummy_download <- downloadHandler(
-                                      filename = function() {
-                                      paste("dummy", ".csv", sep = "")
-     },
-     content = function(file) {
-       write.csv(data_fac_dummy(), file, row.names = FALSE)
-     }
-   )
-   
-   
-#-------------------------TAB-5 Summary Report---------------------------------------------
-    
-   # Tab-1 data screen
-   output$dim <- renderPrint({paste0("Uploaded dataset has ",dim(data())[1]," observations and ",dim(data())[2]," variables")})
-   output$screen_summary <- renderPrint({ds_screener(data())})
-   
-   # Tab-2 Summary Stats
-   output$num_var_for_summary <- renderUI({
-     # if (is.null(input$file)) { return(NULL) }
-     # else{
-     int_cols_1 <- names(dplyr::select_if(data(),is.numeric))
-     print(int_cols_1)
-     #print(int_cols)
-     #cols <- int_cols[[1]]
-     selectInput("num_var",
-                 label = "",
-                 choices=int_cols_1,
-                 multiple = FALSE,
-                 selectize = TRUE,
-                 selected=int_cols_1)
-     # }
-   })
-   
-   # selected data
-   d_summary <- eventReactive(input$submit_summary, {
-     # validate(need(input$var_summary != '', 'Please select a variable.'))
-     req(input$num_var)
-     ds_summary_stats(data(), !! sym(input$num_var))
-   })
-   
-   
-   output$num_summary <- renderPrint({
-     d_summary()
-   })
-   
-   
-   
-#----Tab 3 Freq Qual
-   output$cat_var_for_freq <- renderUI({
-     # if (is.null(input$file)) { return(NULL) }
-     # else{
-     cat_cols_1 <- names(dplyr::select_if(data(),is.factor))
+  
+  output$dummy_table <- renderDataTable({
+    head(data_fac_dummy(),
+         n=10)})
+  
+  
+  output$dummy_download <- downloadHandler(
+    filename = function() {
+      paste("dummy", ".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(data_fac_dummy(), file, row.names = FALSE)
+    }
+  )
+  
+  
+  #-------------------------TAB-5 Summary Report---------------------------------------------
+  
+  # Tab-1 data screen
+  output$dim <- renderPrint({paste0("Uploaded dataset has ",dim(data())[1]," observations and ",dim(data())[2]," variables")})
+  output$screen_summary <- renderPrint({ds_screener(data())})
+  
+  # Tab-2 Summary Stats
+  output$num_var_for_summary <- renderUI({
+    # if (is.null(input$file)) { return(NULL) }
+    # else{
+    int_cols_1 <- names(dplyr::select_if(data(),is.numeric))
+    print(int_cols_1)
+    #print(int_cols)
+    #cols <- int_cols[[1]]
+    selectInput("num_var",
+                label = "",
+                choices=int_cols_1,
+                multiple = FALSE,
+                selectize = TRUE,
+                selected=int_cols_1)
+    # }
+  })
+  
+  # selected data
+  d_summary <- eventReactive(input$submit_summary, {
+    # validate(need(input$var_summary != '', 'Please select a variable.'))
+    req(input$num_var)
+    ds_summary_stats(data(), !! sym(input$num_var))
+  })
+  
+  
+  output$num_summary <- renderPrint({
+    d_summary()
+  })
+  
+  
+  
+  #----Tab 3 Freq Qual
+  output$cat_var_for_freq <- renderUI({
+    # if (is.null(input$file)) { return(NULL) }
+    # else{
+    cat_cols_1 <- names(dplyr::select_if(data(),is.factor))
     # print(int_cols_1)
-     #print(int_cols)
-     #cols <- int_cols[[1]]
-     selectInput("char_var",
-                 label = "",
-                 choices=cat_cols_1,
-                 multiple = FALSE,
-                 selectize = TRUE,
-                 selected=cat_cols_1)
-     # }
-   })
-   
-   
-   
-   f1_title <- eventReactive(input$submit_fqual, {
-     h3('Frequency Table')
-   })
-   
-   output$freq1_title <- renderUI({
-     f1_title()
-   })
+    #print(int_cols)
+    #cols <- int_cols[[1]]
+    selectInput("char_var",
+                label = "",
+                choices=cat_cols_1,
+                multiple = FALSE,
+                selectize = TRUE,
+                selected=cat_cols_1)
+    # }
+  })
   
-   fqual_out <- eventReactive(input$submit_fqual, {
-     if(as.character(input$char_var)==""){return(NULL)}
-     else{
-       ki <- ds_freq_table(data(), !! sym(as.character(input$char_var)))
-       ki
-     }
+  
+  
+  f1_title <- eventReactive(input$submit_fqual, {
+    h3('Frequency Table')
+  })
+  
+  output$freq1_title <- renderUI({
+    f1_title()
+  })
+  
+  fqual_out <- eventReactive(input$submit_fqual, {
+    if(as.character(input$char_var)==""){return(NULL)}
+    else{
+      ki <- ds_freq_table(data(), !! sym(as.character(input$char_var)))
+      ki
+    }
     
-   })
-   
-   # output
-   output$freq_qual <- renderPrint({
-     fqual_out()
-   })
-   
-   output$qual_vert <- renderPlot({
-     if(input$submit_fqual==0 | as.character(input$char_var)=="" ){return(NULL)}
-     else{
-       plot(fqual_out())
-     }
-     
-   })
-
-   
-#------Tab 4 Frequency-Quantitative
-   output$cont_var_for_freq <- renderUI({
-     # if (is.null(input$file)) { return(NULL) }
-     # else{
-     cont_cols_1 <- names(dplyr::select_if(data(),is.numeric))
-     # print(int_cols_1)
-     #print(int_cols)
-     #cols <- int_cols[[1]]
-     selectInput("cont_var",
-                 label = "",
-                 choices=cont_cols_1,
-                 multiple = FALSE,
-                 selectize = TRUE,
-                 selected=cont_cols_1)
-     # }
-   })
-   
-   
-   
-   # selected data
-   d_freq_quant <- eventReactive(input$submit_fquant, {
-     data <- data()[, input$cont_var]
-   })
-   # 
-   # # update filter slider
-   # observe({
-   #   updateSliderInput(session = session,
-   #                     inputId = 'filter_quant',
-   #                     min = min(d_freq_quant()),
-   #                     max = max(d_freq_quant()),
-   #                     step = 1,
-   #                     value = c(min(d_freq_quant()), max(d_freq_quant()))
-   #   )
-   # })
-   # 
-   # 
-   
-   # # # filters
-   # fil_quant_data <- reactive({
-   #   
-   #   min_data <- input$filter_quant[1]
-   #   max_data <- input$filter_quant[2]
-   #   
-   #   # f_data <- d_summary()[d_summary()[, 1] >= min_data & d_summary()[, 1] <= max_data, 1]
-   #   f_data <- d_freq_quant()[d_freq_quant() >= min_data & d_freq_quant() <= max_data]
-   #   fdata <- as.data.frame(f_data)
-   #   names(fdata) <- as.character(input$var_freq_quant)
-   #   fdata
-   # })
-   # 
-   
-   
-   f1_title <- eventReactive(input$submit_fquant, {
-     h3('Frequency Table')
-   })
-   
-   output$freq2_title <- renderUI({
-     f1_title()
-   })
-   
-   fquant_out <- eventReactive(input$submit_fquant, {
-     ki <- ds_freq_table(data(), !! sym(as.character(input$cont_var)),input$bins)
-     ki
-   })
-   
-   # output
-   output$freq_quant <- renderPrint({
-     fquant_out()
-   })
-   
-   output$hist_freq_quant <- renderPlot({
-     if(input$submit_fquant==0){return(NULL)}
-     else{
-       plot(fquant_out())
-     }
-     
-   })
-   
-#----Tab 5 Corr Plot
-   output$corr_plot <- renderPlot({
-     complete_data <- data()[complete.cases(data()),]
-     plot_correlation(complete_data, type = "continuous") # for continuous vars
-     
-   })
-   
+  })
+  
+  # output
+  output$freq_qual <- renderPrint({
+    fqual_out()
+  })
+  
+  output$qual_vert <- renderPlot({
+    if(input$submit_fqual==0 | as.character(input$char_var)=="" ){return(NULL)}
+    else{
+      plot(fqual_out())
+    }
+    
+  })
+  
+  
+  #------Tab 4 Frequency-Quantitative
+  output$cont_var_for_freq <- renderUI({
+    # if (is.null(input$file)) { return(NULL) }
+    # else{
+    cont_cols_1 <- names(dplyr::select_if(data(),is.numeric))
+    # print(int_cols_1)
+    #print(int_cols)
+    #cols <- int_cols[[1]]
+    selectInput("cont_var",
+                label = "",
+                choices=cont_cols_1,
+                multiple = FALSE,
+                selectize = TRUE,
+                selected=cont_cols_1)
+    # }
+  })
+  
+  
+  
+  # selected data
+  d_freq_quant <- eventReactive(input$submit_fquant, {
+    data <- data()[, input$cont_var]
+  })
+  # 
+  # # update filter slider
+  # observe({
+  #   updateSliderInput(session = session,
+  #                     inputId = 'filter_quant',
+  #                     min = min(d_freq_quant()),
+  #                     max = max(d_freq_quant()),
+  #                     step = 1,
+  #                     value = c(min(d_freq_quant()), max(d_freq_quant()))
+  #   )
+  # })
+  # 
+  # 
+  
+  # # # filters
+  # fil_quant_data <- reactive({
+  #   
+  #   min_data <- input$filter_quant[1]
+  #   max_data <- input$filter_quant[2]
+  #   
+  #   # f_data <- d_summary()[d_summary()[, 1] >= min_data & d_summary()[, 1] <= max_data, 1]
+  #   f_data <- d_freq_quant()[d_freq_quant() >= min_data & d_freq_quant() <= max_data]
+  #   fdata <- as.data.frame(f_data)
+  #   names(fdata) <- as.character(input$var_freq_quant)
+  #   fdata
+  # })
+  # 
+  
+  
+  f1_title <- eventReactive(input$submit_fquant, {
+    h3('Frequency Table')
+  })
+  
+  output$freq2_title <- renderUI({
+    f1_title()
+  })
+  
+  fquant_out <- eventReactive(input$submit_fquant, {
+    ki <- ds_freq_table(data(), !! sym(as.character(input$cont_var)),input$bins)
+    ki
+  })
+  
+  # output
+  output$freq_quant <- renderPrint({
+    fquant_out()
+  })
+  
+  output$hist_freq_quant <- renderPlot({
+    if(input$submit_fquant==0){return(NULL)}
+    else{
+      plot(fquant_out())
+    }
+    
+  })
+  
+  #----Tab 5 Corr Plot
+  output$corr_plot <- renderPlot({
+    complete_data <- data()[complete.cases(data()),]
+    plot_correlation(complete_data, type = "continuous") # for continuous vars
+    
+  })
+  
 }
 
