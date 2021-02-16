@@ -13,6 +13,4 @@ if (!require(shinyhelper)) {install.packages("shinyhelper")};  library(shinyhelp
 if (!require(summarytools)) {install.packages("summarytools")};  library(summarytools)
 if (!require(descriptr)) {install.packages("descriptr")};  library(descriptr)
 if (!require(DataExplorer)){install.packages("DataExplorer")}; library(DataExplorer)
-
-
-#if (!require(caret)) {install.packages("caret")};  library(caret)
+if (!require(shinyBS)) {install.packages("shinyBS")};  library(shinyBS)

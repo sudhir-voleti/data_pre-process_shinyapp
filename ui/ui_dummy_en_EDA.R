@@ -15,6 +15,9 @@ tabPanel('EDA', value = 'tab_eda', icon = icon('stats', lib = 'glyphicon'),
                                  ),
                                  hr(),
                                  fluidRow(
+                                   column(12,align="left",verbatimTextOutput("dim"))
+                                 ),
+                                 fluidRow(
                                    br(),
                                    br(),
                                    column(12, align = 'center',
@@ -36,18 +39,18 @@ tabPanel('EDA', value = 'tab_eda', icon = icon('stats', lib = 'glyphicon'),
                                  ),
                                  hr(),
                                  fluidRow(
-                                   column(4, align = 'right',
+                                   column(2, align = 'right',
                                           br(),
                                           br(),
                                           h5('Variable:')
                                           
                                    ),
-                                   column(2, align = 'left',
+                                   column(8, align = 'left',
                                           br(),
                                           uiOutput('num_var_for_summary')
                                           
                                    ),
-                                   column(6, align = 'left',
+                                   column(2, align = 'left',
                                           br(),
                                           br(),
                                           actionButton(inputId = 'submit_summary', label = 'Submit', width = '120px', icon = icon('check')),
@@ -79,21 +82,21 @@ tabPanel('EDA', value = 'tab_eda', icon = icon('stats', lib = 'glyphicon'),
                                  hr(),
                                  
                                  fluidRow(
-                                   column(4, align = 'right',
+                                   column(2, align = 'right',
                                           br(),
                                           br(),
                                           h5('Variable:')
                                           
                                    ),
                                    
-                                   column(3, align = 'left',
+                                   column(6, align = 'left',
                                           
                                           br(),
                                           uiOutput('cat_var_for_freq')
                                           
                                    ),
                                    
-                                   column(4, align = 'left',
+                                   column(3, align = 'left',
                                           br(),
                                           br(),
                                           actionButton(inputId = 'submit_fqual', label = 'Submit', width = '120px', icon = icon('check')),

@@ -188,6 +188,8 @@ server <- function(input, output,session) {
     
     if(is.null(input$IntVar2Imp)){
       values1$df_imputed <- data_fac()
+      imputed_df <- list()
+      imputed_df[[1]] <- data_fac()
       sendSweetAlert(
         session = session,
         title = "Information",
@@ -205,16 +207,42 @@ server <- function(input, output,session) {
                              original_flag = input$orig_col,
                              replacement_ind = ifelse(!is.null(input$ind),input$ind,FALSE)
       )
-      values1$df_imputed <- imputed_df[[1]]
-      values2$replaced_by <- imputed_df[[2]]
-      sendSweetAlert(
-        session = session,
-        title = "Imputed Successfully !!",
-        text = NULL,
-        type = "success"
-      )
+     
+    }
+    if(!is.null(input$CatVar2Imp)){
+      cat_cols <- input$CatVar2Imp
+      df_imputed_temp <- imputed_df[[1]][,cat_cols]
+      if(input$orig_col==TRUE){
+        for (cols in cat_cols) {
+          if (cols %in% names(df_imputed_temp[,sapply(df_imputed_temp, is.factor)])) {
+            df_imputed_temp_1<-df_imputed_temp%>%
+              mutate(!!cols := replace(!!rlang::sym(cols), !!rlang::sym(cols)=="", getmode(!!rlang::sym(cols))))
+            imputed_df[[2]]<- getmode(imputed_df[[1]][,cols])
+            }
+        }
+        colnames(df_imputed_temp_1) <- paste0("imputed_",cat_cols)
+        imputed_df[[1]] <- cbind(imputed_df[[1]],df_imputed_temp_1)
+        
+      }else{
+        for (cols in cat_cols) {
+          if (cols %in% names(df[,sapply(df, is.factor)])) {
+            imputed_df[[1]]<-imputed_df[[1]]%>%
+              mutate(!!cols := replace(!!rlang::sym(cols), !!rlang::sym(cols)=="", getmode(!!rlang::sym(cols))))
+            imputed_df[[2]]<- getmode(imputed_df[[1]][,cols])
+            }
+      }
+      
+      
+      }
     }
     
+    values1$df_imputed <- imputed_df[[1]]
+    values2$replaced_by <- imputed_df[[2]]
+    sendSweetAlert(
+      session = session,
+      title = "Imputed Successfully !!",
+      text = NULL,
+      type = "success")
   
     
   })
@@ -268,7 +296,7 @@ server <- function(input, output,session) {
     #print(int_cols)
     #cols <- int_cols[[1]]
     selectInput("trans_cols",
-                label = "Select numerical columns for imputation ",
+                label = "Select numerical columns for transformation ",
                 choices=cols,
                 multiple = TRUE,
                 selectize = TRUE,
@@ -436,6 +464,7 @@ server <- function(input, output,session) {
 #-------------------------TAB-5 Summary Report---------------------------------------------
     
    # Tab-1 data screen
+   output$dim <- renderPrint({paste0("Uploaded dataset has ",dim(data())[1]," observations and ",dim(data())[2]," variables")})
    output$screen_summary <- renderPrint({ds_screener(data())})
    
    # Tab-2 Summary Stats

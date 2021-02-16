@@ -256,4 +256,9 @@ data_transform <- function(df,method,cols,original_flag=TRUE){
   
 }
 
+getmode <- function(v){
+  v=v[nchar(as.character(v))>0]
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
 

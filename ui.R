@@ -11,7 +11,8 @@ library(VIM)
 library(summarytools)
 library(descriptr)
 library(DataExplorer)
-
+library(shinyBS)
+library(stringr)
 
 useSweetAlert()
 
